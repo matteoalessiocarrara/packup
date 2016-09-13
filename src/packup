@@ -44,4 +44,4 @@ PREV_BKUP="$(ls $BKUP_ROOT | sort | tail -n 1)"
 
 
 mkdir $DEST
-rsync --archive --recursive --relative --perms --human-readable --verbose $OPT_CMD $FILES $DEST
+rsync --archive --relative --hard-links --human-readable --verbose $OPT_CMD $FILES $DEST
