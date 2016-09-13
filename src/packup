@@ -19,9 +19,10 @@
 #
 
 
-# TODO esportare lista film
-# TODO controllo integrità file da copiare
-# TODO controlli integrità periodici
+# TODO Esportare lista dei file al posto dei file (es. per i film)
+# TODO Dichiarare alcuni file come costanti e avvisare se sono stati modificati (corruzione)
+# TODO Controlli integrità periodici
+# TODO Implementare hooks pre e post backup? (es. pre-download di dati online, post-compressione dei dati)
 
 
 set -e -u
