@@ -117,12 +117,12 @@ function main()
 	mkdir $DEST
 	
 	inf "Copia dei file..."
-	rsync $RSYNC_FLAGS $PACKUP_FILES $DEST
+	rsync $RSYNC_FLAGS ${PACKUP_FILES[@]} $DEST
 	
 	if [[ -n $PACKUP_CONST ]]
 	then
 		inf "Copia dei file immutabili..."
-		rsync $RSYNC_FLAGS --ignore-existing $PACKUP_CONST $DEST
+		rsync $RSYNC_FLAGS --ignore-existing ${PACKUP_CONST[@]} $DEST
 	fi
 
 
