@@ -5,7 +5,7 @@ Sistema di backup incentrato sul mantenimento dell'integrità dei file
 
 ## Caratteristiche
 
- * I file non sono archiviati in un unico file (tar, zip), perché il danneggiamento 
+ * Copia diretta dei file senza archiviazione (tar, zip), perché il danneggiamento 
    del contenitore potrebbe comportare la perdita di tutti i dati.
  * Hooks per eseguire programmi personalizzati prima e dopo il backup
  * Backup di file immutabili, che verranno copiati una sola volta e future modifiche 
