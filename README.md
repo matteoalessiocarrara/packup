@@ -10,7 +10,7 @@ Sistema di backup incentrato sul mantenimento dell'integrità dei file
  * Hooks per eseguire programmi personalizzati prima e dopo il backup
  * Backup di file immutabili, che verranno copiati una sola volta e future modifiche 
    saranno ignorate. Utile per es. con archivi di vecchie foto, dove una 
-   modifica significherebbe che si sono corrotte e non dovrebbero essere copiate.
+   modifica indicherebbe un danneggiamento e non dovrebbero essere copiate.
 
 
 ## Per aggiornamenti
