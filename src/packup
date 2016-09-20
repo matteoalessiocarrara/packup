@@ -82,6 +82,8 @@ function check_const_files()
 	printf '%s\n' "${PACKUP_CONST[@]}" | sort > $const
 	
 	intersect="$(comm -1 -2 $files $const)"
+	
+	rm -f $files $const
 
 	if [[ -n $intersect ]]
 	then
