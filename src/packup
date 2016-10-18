@@ -113,7 +113,7 @@ function save_hash()
 	do
 		if [[ -d "$f" ]]
 		then
-			for ff in $(find $f -not -type d)
+			find $f -not -type d | while read ff
 			do
 				if [[ $ONLY_NEW = "true" ]]
 				then 
@@ -173,8 +173,8 @@ function main()
 	[[ ! -e $CONST_FILES_HASH_DEST ]] && touch $CONST_FILES_HASH_DEST
 	
 	# FIXME Passaggio di path con spazio all'interno?
-	save_hash false $FILES_HASH_DEST ${PACKUP_FILES[@]}
-	save_hash true $CONST_FILES_HASH_DEST ${PACKUP_CONST[@]}
+	[[ -n $PACKUP_FILES ]] && save_hash false $FILES_HASH_DEST ${PACKUP_FILES[@]}
+	[[ -n $PACKUP_CONST ]] && save_hash true $CONST_FILES_HASH_DEST ${PACKUP_CONST[@]}
 
 
 	inf "Esecuzione degli script di post-backup.."
