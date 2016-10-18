@@ -113,7 +113,7 @@ function save_hash()
 	do
 		if [[ -d "$f" ]]
 		then
-			for ff in "$(find $f -not -type d)"
+			for ff in $(find $f -not -type d)
 			do
 				if [[ $ONLY_NEW = "true" ]]
 				then 
@@ -172,6 +172,7 @@ function main()
 	[[ ! -e $FILES_HASH_DEST ]] && touch $FILES_HASH_DEST
 	[[ ! -e $CONST_FILES_HASH_DEST ]] && touch $CONST_FILES_HASH_DEST
 	
+	# FIXME Passaggio di path con spazio all'interno?
 	save_hash false $FILES_HASH_DEST ${PACKUP_FILES[@]}
 	save_hash true $CONST_FILES_HASH_DEST ${PACKUP_CONST[@]}
 
