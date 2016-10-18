@@ -141,8 +141,8 @@ function main()
 	local PRE_HOOKS_DIR=~/packup/pre
 	local POST_HOOKS_DIR=~/packup/post
 	local DEST="$PACKUP_ROOT/$(date --iso-8601=seconds)"
-	local PREV_BKUP="$(ls $PACKUP_ROOT | sort | tail -n 1)"
-	local OPT_CMD=$([[ -n $PREV_BKUP ]] && echo "--link-dest=$PACKUP_ROOT/$PREV_BKUP" || echo -n "")
+	local PREV_BKUP="$(find $PACKUP_ROOT -maxdepth 1 -type d | sort | tail -n 1)"
+	local OPT_CMD=$([[ -n $PREV_BKUP ]] && echo "--link-dest=$PREV_BKUP" || echo -n "")
 	local RSYNC_FLAGS="--archive --relative --hard-links --human-readable	--info=misc2,name,skip,stats,symsafe $OPT_CMD"
 	local FILES_HASH_DEST="$PACKUP_ROOT/$(date --iso-8601=seconds)-hash"
 	local CONST_FILES_HASH_DEST="$PACKUP_ROOT/const-hash"
