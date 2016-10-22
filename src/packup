@@ -25,7 +25,10 @@ source /usr/local/lib/bash_colors
 # FIXME Verificare meglio conflitti fra file normali e immutabili (sottodirectory)
 # TODO Controlli integrità periodici / hash files
 # TODO I backup dovrebbero essere read only
-
+# TODO Hash incrementali
+# TODO Rimuovere const
+# FIXME Gestire meglio nomi strani
+# TODO Singola chiamata a md5sum
 
 
 function check_env_var()
