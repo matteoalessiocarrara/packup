@@ -1,0 +1,96 @@
+#!/usr/bin/bash
+#
+#  Copyright 2016 Matteo Alessio Carrara <sw.matteoac@gmail.com>
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+#  MA 02110-1301, USA.
+#
+
+set -e
+source /usr/local/lib/bash_colors
+
+
+# TODO Reinserire hash
+# TODO Controlli integrità periodici / hash files
+# TODO I backup dovrebbero essere read only
+
+
+function check_env_var()
+{
+	# Devono essere definite queste variabili d'ambiente
+	#
+	# PACKUP_ROOT	dove vengono salvati i backup (e solo quelli!!)
+	# PACKUP_FILES	files da copiare
+
+	if [[ -z $PACKUP_ROOT ]] || [[ -z $PACKUP_FILES ]]; then
+		clr_red "Le variabili d'ambiente PACKUP_ROOT e PACKUP_FILES devono essere definite"
+		exit 1
+	fi
+}
+
+
+function execute_hooks()
+{
+	if [[ $# -ne 1 ]]; then
+		clr_red -n "$FUNCNAME: $LINENO: "; echo "parametri scorretti"
+		exit 1
+	else
+		local HOOKS_DIR=$1
+	fi
+
+	if [[ -d $HOOKS_DIR ]]; then
+		for f in $(ls $HOOKS_DIR); do
+			. $HOOKS_DIR/$f
+		done
+	else
+		warn "La directory degli hooks è inesistente ($HOOKS_DIR)"
+	fi
+}
+
+
+function main()
+{
+	check_env_var
+
+	
+	local PRE_HOOKS_DIR=~/packup/pre
+	local POST_HOOKS_DIR=~/packup/post
+	
+	local DEST="$PACKUP_ROOT/$(date --iso-8601=seconds)"
+	local PREV_BKUP="$(find $PACKUP_ROOT -maxdepth 1 -type d | sort | tail -n 1)"
+	
+	local OPT_CMD=$([[ -n $PREV_BKUP ]] && echo "--link-dest=$PREV_BKUP" || echo -n "")
+	local RSYNC_FLAGS="--archive --relative --hard-links --human-readable --info=misc2,name,skip,stats,symsafe $OPT_CMD"
+
+	
+	[[ -n $PREV_BKUP ]] && inf "Individuato backup precedente \($PREV_BKUP\)"
+
+	inf "Esecuzione degli script di pre-backup..."
+	execute_hooks $PRE_HOOKS_DIR
+
+
+	inf "Copia dei file..."
+	mkdir $DEST
+	rsync $RSYNC_FLAGS ${PACKUP_FILES[@]} $DEST
+
+	
+	inf "Esecuzione degli script di post-backup.."
+	execute_hooks $POST_HOOKS_DIR
+	
+	inf "Backup terminato"
+}
+
+
+main

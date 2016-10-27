@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
 project(packup)
 
-add_subdirectory(src)
+install(PROGRAMS packup DESTINATION bin)
+install(PROGRAMS bash_colors DESTINATION lib)
