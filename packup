@@ -64,6 +64,11 @@ function main()
 {
 	check_env_var
 
+	if [[ ! -d $PACKUP_ROOT ]]; then
+		clr_red "La directory \"$PACKUP_ROOT\" non è esistente"
+		exit 1
+	fi
+	
 	
 	local PRE_HOOKS_DIR=~/packup/pre
 	local POST_HOOKS_DIR=~/packup/post
