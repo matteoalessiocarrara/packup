@@ -60,6 +60,12 @@ function execute_hooks()
 }
 
 
+function find_old_backups()
+{
+	find $PACKUP_ROOT -maxdepth 1 -type d | sort 
+}
+
+
 function main()
 {
 	check_env_var
@@ -74,7 +80,8 @@ function main()
 	local POST_HOOKS_DIR=~/packup/post
 	
 	local DEST="$PACKUP_ROOT/$(date --iso-8601=seconds)"
-	local PREV_BKUP="$(find $PACKUP_ROOT -maxdepth 1 -type d | sort | tail -n 1)"
+	local PREV_BKUP="$(find_old_backups | tail -n 1)"
+	local HASH_FILE="$PACKUP_ROOT/hash"
 	
 	local OPT_CMD=$([[ -n $PREV_BKUP ]] && echo "--link-dest=$PREV_BKUP" || echo -n "")
 	local RSYNC_FLAGS="--archive --relative --hard-links --human-readable --info=misc2,name,skip,stats,symsafe $OPT_CMD"
@@ -90,6 +97,24 @@ function main()
 	mkdir $DEST
 	rsync $RSYNC_FLAGS ${PACKUP_FILES[@]} $DEST
 
+	
+	inf "Calcolo degli hash..."
+	# I file con un solo hardlink non sono gli stessi dei vecchi backup
+	find $DEST -type f -links 1 -printf '"%p"\n' | xargs md5sum >> $HASH_FILE
+	# Se i file con più di un hardlink sono esterni a questo backup, allora l'hash
+	# è già stato calcolato nei vecchi backup
+	readarray -t a < <(find $DEST -type f -not -links 1)
+	for f in $a; do
+		need_hash="true"
+		readarray -t b < <(find $PACKUP_ROOT -samefile "$f")
+		for ff in $b; do
+			if [[ ! $(realpath "$ff") == $(realpath $DEST)* ]]; then
+				need_hash="false"
+				break
+			fi
+		done
+		[[ $need_hash == "true" ]] && md5sum "$f" >> $HASH_FILE
+	done
 	
 	inf "Esecuzione degli script di post-backup.."
 	execute_hooks $POST_HOOKS_DIR
