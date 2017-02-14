@@ -187,3 +187,8 @@ function warn()
 	clr_brown clr_bold -n "[!] "; echo "$@"
 }
 
+
+function err()
+{
+	clr_red clr_bold -n "[X] "; echo "$@"
+}

@@ -1,41 +1,25 @@
 #!/usr/bin/bash
-#
-#  Copyright 2016 Matteo Alessio Carrara <sw.matteoac@gmail.com>
-#
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-#  MA 02110-1301, USA.
-#
+# Copyright 2016 - 2017 Matteo Alessio Carrara <sw.matteoac@gmail.com>
+
 
 set -e
-source /usr/local/lib/bash_colors
-
-
-# TODO Reinserire hash
-# TODO Controlli integrità periodici / hash files
-# TODO I backup dovrebbero essere read only
+source /usr/local/lib/bash_colors # XXX ugly
 
 
 function check_env_var()
 {
-	# Devono essere definite queste variabili d'ambiente
-	#
-	# PACKUP_ROOT	dove vengono salvati i backup (e solo quelli!!)
-	# PACKUP_FILES	files da copiare
+	# These environment variables must be defined:
+	# PACKUP_ROOT	where the backups are saved (WARNING: they must be in a dedicated/
+	# 				empty directory or the script will not work. Furthermore, this
+	#				must be the full path of the directory.)
+	# PACKUP_FILES	files to copy
 
 	if [[ -z $PACKUP_ROOT ]] || [[ -z $PACKUP_FILES ]]; then
-		clr_red "Le variabili d'ambiente PACKUP_ROOT e PACKUP_FILES devono essere definite"
+		clr_red "The environment variables PACKUP_ROOT and PACKUP_FILES must be defined"
+		exit 1
+	fi
+	if [[ ! -d $PACKUP_ROOT ]]; then
+		clr_red "The \"$PACKUP_ROOT\" directory does not exist ($PACKUP_ROOT)"
 		exit 1
 	fi
 }
@@ -44,7 +28,7 @@ function check_env_var()
 function execute_hooks()
 {
 	if [[ $# -ne 1 ]]; then
-		clr_red -n "$FUNCNAME: $LINENO: "; echo "parametri scorretti"
+		clr_red -n "$FUNCNAME: $LINENO: "; echo "incorrect number of arguments"
 		exit 1
 	else
 		local HOOKS_DIR=$1
@@ -55,27 +39,26 @@ function execute_hooks()
 			. $HOOKS_DIR/$f
 		done
 	else
-		warn "La directory degli hooks è inesistente ($HOOKS_DIR)"
+		warn "The hooks directory does not exist ($HOOKS_DIR)"
 	fi
 }
 
 
 function find_old_backups()
 {
-	find $PACKUP_ROOT -maxdepth 1 -type d | sort 
+	# oldest first
+	# we are cutting the first line because is the directory itself
+	find $PACKUP_ROOT -maxdepth 1 -type d | sed 1d | sort 
 }
 
 
 function main()
 {
-	check_env_var
-
-	if [[ ! -d $PACKUP_ROOT ]]; then
-		clr_red "La directory \"$PACKUP_ROOT\" non è esistente"
-		exit 1
-	fi
+	check_env_var	
 	
 	
+	# it is not an hidden directory because there are too many and you never know 
+	# what to save in case of system reinstall
 	local PRE_HOOKS_DIR=~/packup/pre
 	local POST_HOOKS_DIR=~/packup/post
 	
@@ -87,22 +70,25 @@ function main()
 	local RSYNC_FLAGS="--archive --relative --hard-links --human-readable --info=misc2,name,skip,stats,symsafe $OPT_CMD"
 
 	
-	[[ -n $PREV_BKUP ]] && inf "Individuato backup precedente \($PREV_BKUP\)"
+	[[ -n $PREV_BKUP ]] && inf "Found previous backup ($PREV_BKUP)"
 
-	inf "Esecuzione degli script di pre-backup..."
+	inf "Executing pre-backup scripts..."
 	execute_hooks $PRE_HOOKS_DIR
 
 
-	inf "Copia dei file..."
+	inf "Copying files..."
 	mkdir $DEST
 	rsync $RSYNC_FLAGS ${PACKUP_FILES[@]} $DEST
 
 	
-	inf "Calcolo degli hash..."
-	# I file con un solo hardlink non sono gli stessi dei vecchi backup
-	find $DEST -type f -links 1 -printf '"%p"\n' | xargs md5sum >> $HASH_FILE
-	# Se i file con più di un hardlink sono esterni a questo backup, allora l'hash
-	# è già stato calcolato nei vecchi backup
+	inf "Computing hashes..."
+	# New files have only one hardlink, while older files have a link for this 
+	# backup and 1+ for the old backups. User-created hardlink are detected below.
+	local oaf=`find $DEST -type f -links 1 -printf '"%p"\n'`
+	[[ -n $oaf ]] && echo $oaf | xargs md5sum >> $HASH_FILE
+	
+	# If the files with more than one hardlink are external to this backup,
+	# then the hash has already been calculated in the old backup
 	readarray -t a < <(find $DEST -type f -not -links 1)
 	for f in $a; do
 		need_hash="true"
@@ -116,10 +102,10 @@ function main()
 		[[ $need_hash == "true" ]] && md5sum "$f" >> $HASH_FILE
 	done
 	
-	inf "Esecuzione degli script di post-backup.."
+	inf "Executing post-backup scripts..."
 	execute_hooks $POST_HOOKS_DIR
 	
-	inf "Backup terminato"
+	inf "Backup finished"
 }
 
 

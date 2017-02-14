@@ -1,10 +1,8 @@
 # Packup
+Backup system focused on maintaining files integrity
 
-Sistema di backup incentrato sul mantenimento dell'integrità dei file
+## News & updates
 
-
-## Per aggiornamenti
-
-È possibile iscriversi al canale [telegram](https://telegram.me/matteoalessiocarrara) 
-od alla comoda pagina [facebook](https://www.facebook.com/matteoalessiocarrara).
+ * [Telegram](https://telegram.me/matteoalessiocarrara) 
+ * [Facebook](https://www.facebook.com/matteoalessiocarrara)
 
