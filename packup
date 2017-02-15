@@ -78,8 +78,9 @@ function main()
 
 	inf "Copying files..."
 	mkdir $DEST
-	rsync $RSYNC_FLAGS ${PACKUP_FILES[@]} $DEST
-
+	rsync $RSYNC_FLAGS ${PACKUP_FILES[@]} $DEST  || true
+	# Ignore error 23: partial transfer due to error
+	[[ $? -ne 0 ]] && [[ $? -ne 23 ]] && exit 1
 	
 	inf "Computing hashes..."
 	# New files have only one hardlink, while older files have a link for this 
